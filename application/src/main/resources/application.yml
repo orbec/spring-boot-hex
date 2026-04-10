@@ -1,0 +1,316 @@
+server:
+  port: 8080
+
+application:
+  environment: ${APP_ENVIRONMENT}
+  activeNewModelOpenFga: ${FF_OPENFGA_NEW_MODEL:true}
+  version: 1.0.0
+  resilience:
+    country:
+      path: ${RESILIENCE_COUNTRY_PATH:message.header.custom.country}
+    default:
+      country: ${RESILIENCE_DEFAULT_COUNTRY:CR}
+
+service:
+  connection:
+    timeout: 5000
+
+spring:
+  application:
+    name: bancadigital-ms-investment-funds
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      user: ${REDIS_USER}
+      password: ${REDIS_PASS}
+      ssl:
+        enabled: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher
+  webflux:
+    enable: true
+    base-path: /investment-funds
+
+
+springdoc:
+  override-with-generic-response: false
+  default-consumes-media-type: "application/json"
+  default-produces-media-type: "application/json"
+  show-actuator: true
+
+  api-docs:
+    enabled: ${USE_API-DOCS:false}
+  swagger-ui:
+    enabled: ${USE_SWAGGER:false}
+    tags-sorter: alpha
+    operations-sorter: method
+    doc-expansion: false
+
+  remote-server:
+    url: https://bac-investment-funds.dev.aws.corp.redbac.com/investment-funds
+    title: Dev server
+
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr([${spring.application.name:-}]){yellow} %clr([%X{traceId:-}-%X{spanId:-}]){yellow} %clr(%-40.40logger{39}){cyan} : %m%n"
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.bac: ${LOG_LEVEL_BAC:DEBUG}
+
+remote:
+  endpoint:
+    time-out: ${TIME_OUT:5000}
+    service-data-power:
+      server: ${DATAPOWER_SERVER}
+      lobby-investment-funds:
+        base-url: ${INVESTMENT_FUNDS_REMOTE_HOST}
+        service-path: ${LIF_SERVICE_PATH}
+        operation-code: ${LIF_OPERATION_CODE}
+        user: ${LIF_USER}
+
+    service-openfga:
+      base-url: ${WRAPPER_OPENFGA_BASE_URL}
+      path: ${WRAPPER_OPENFGA_USER_PATH}
+      environment: ${OPENFGA_ENVIRONMENT}
+      store-id-new-model: 01K43K86ZM5E8981EE8JE8K74E
+      #store-id-new-model: ${STORE_ID}
+      #auth-model-id-new-model: ${AUTHORIZATION_MODEL_ID}
+      auth-model-id-new-model: 01KJR9DZV9AW8YNKGQNSK5PH9K
+      store-id: 01K43K86ZM5E8981EE8JE8K74E
+      #store-id: ${OPENFGA_STORE_ID}
+      auth-model-id: 01KJR9DZV9AW8YNKGQNSK5PH9K
+      #auth-model-id: ${OPENFGA_AUTHOTIZATION_MODEL_ID}
+      paths:
+        list-objects: ${OPENFGA_LIST_OBJECTS}
+
+    service-login:
+      certificate:
+        path: ${CERTIFICATE_JKS}
+        pass: ${CERTIFICATE_PASS}
+      keystore:
+        pass: ${KEYSTORE_PASS}
+      services:
+        lobby-investment-funds:
+          active: ${OAUTH:true}
+          url: ${LOBBY_FUNDS_TOKEN_HOST}
+          query-params:
+            grant-type: ${AUTH_LIF_GRANT_TYPE}
+            scope: ${AUTH_LIF_SCOPE}
+            client-id: ${AUTH_LIF_CLIENT_ID}
+            client-secret: ${AUTH_LIF_CLIENT_SECRET}
+
+config:
+  log:
+    group-name: ${LOG_GROUP_NAME}
+    stream-prefix: ${PREFIX_LOG_STREAM_NAME}
+
+feature:
+  flag:
+    openfga: ${FF_OPENFGA}
+    new-model: ${FF_OPENFGA_NEW_MODEL:true}
+
+postgresdb:
+  host: ${POSTGRES_HOST_K8}
+  port: ${POSTGRES_PORT_K8}
+  username: ${POSTGRES_USERNAME}
+  password: ${POSTGRES_PASSWORD}
+  database: ${POSTGRES_DATABASE}
+
+certificates:
+  path: ${CERTIFICATES_PATH:""}
+
+datapower:
+  embedded-errors: ${DATAPOWER_EMBEDDED_ERRORS:}
+  roads:
+    fw4:
+      scope: ${INVESTMENT_FUNDS_DP_FW4_SCOPE}
+      oauth-client-id: ${INVESTMENT_FUNDS_DP_FW4_CLIENT_ID}
+      oauth-client-secret: ${INVESTMENT_FUNDS_DP_FW4_CLIENT_SECRET}
+      oauth-url: ${FW4_OAUTH_URL}
+      service-url: ${FW4_SERVICE_URL}
+    fw7:
+      scope: ${INVESTMENT_FUNDS_DP_FW7_SCOPE}
+      oauth-client-id: ${INVESTMENT_FUNDS_DP_FW7_CLIENT_ID}
+      oauth-client-secret: ${INVESTMENT_FUNDS_DP_FW7_CLIENT_SECRET}
+      oauth-url: ${FW7_OAUTH_URL}
+      service-url: ${FW7_SERVICE_URL}
+    proxy:
+      scope: ${INVESTMENT_DP_PROXY_SCOPE}
+      oauth-client-id: ${INVESTMENT_DP_PROXY_CLIENT_ID}
+      oauth-client-secret: ${INVESTMENT_DP_PROXY_CLIENT_SECRET}
+      oauth-url: ${PROXY_OAUTH_URL}
+      service-url: ${PROXY_SERVICE_URL}
+  services:
+    "alias":
+      service_id: ${DP_ALIAS_SERVICE}
+      road: proxy
+      http_method: PUT
+      properties:
+        description: "Pension Funds Alias from DP"
+        apply_resilience: false
+        apply_retry: false
+    "SAFI_Cliente_InformacionFondoPorCIF":
+      service_id: "SAFI_Cliente_InformacionFondoPorCIF"
+      service_url: ${INVESTMENT_FUNDS_REMOTE_HOST}
+      oauth_enabled: true
+      new_road_enabled: ${FUNDS_PER_CIF_NEW_ROAD_ENABLED:true}
+      road: ${FUNDS_PER_CIF_ROAD}
+      properties:
+        description: "Informacion Fondos por CIF"
+        apply_resilience: true
+        apply_retry: true
+      oauthService:
+        oauthUrl: ${LOBBY_FUNDS_TOKEN_HOST}
+        oauthClientId: ${AUTH_LIF_CLIENT_ID}
+        oauthClientSecret: ${AUTH_LIF_CLIENT_SECRET}
+        scope: ${AUTH_LIF_SCOPE}
+
+metrics:
+  service-name: ${spring.application.name}
+  global-filters:
+    - resilience4j
+  providers:
+    dynatrace:
+      enabled: ${DYNATRACE_ENABLE:true}
+      api-key: ${DYNATRACE_API_TOKEN}
+      step: 3
+      additional-properties:
+        uri: ${DYNATRACE_URI}
+
+resilience4j:
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: ${BULKHEAD_MAX_CONCURRENT_CALLS:2147483647}
+        maxWaitDuration: ${BULKHEAD_MAX_WAIT_DURATION:10000s}
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: ${TIMEOUT_DURATION:15s}
+  retry:
+    configs:
+      CR:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_CR:3}
+        waitDuration: ${RETRY_WAIT_DURATION_CR:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_CR1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_CR2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      HN:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_HN:3}
+        waitDuration: ${RETRY_WAIT_DURATION_HN:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_HN1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_HN2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      NI:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_NI:3}
+        waitDuration: ${RETRY_WAIT_DURATION_NI:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_NI1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_NI2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      GT:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_GT:3}
+        waitDuration: ${RETRY_WAIT_DURATION_GT:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_GT1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_GT2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      SV:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_SV:3}
+        waitDuration: ${RETRY_WAIT_DURATION_SV:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_SV1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_SV2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      PA:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_PA:3}
+        waitDuration: ${RETRY_WAIT_DURATION_PA:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_PA1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_PA2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      default:
+        maxAttempts: ${RETRY_MAX_ATTEMPTS_DEFAULT:3}
+        waitDuration: ${RETRY_WAIT_DURATION_DEFAULT:100ms}
+        ignoreExceptions:
+          - ${RETRY_IGNORE_EXCEPTION_DEFAULT1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${RETRY_IGNORE_EXCEPTION_DEFAULT2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+  circuitbreaker:
+    configs:
+      CR:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_CR:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_CR:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_CR:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_CR:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_CR:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_CR1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_CR2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      HN:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_HN:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_HN:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_HN:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_HN:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_HN:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_HN1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_HN2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      NI:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_NI:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_NI:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_NI:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_NI:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_NI:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_NI1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_NI2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      GT:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_GT:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_GT:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_GT:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_GT:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_GT:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_GT1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_GT2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      SV:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_SV:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_SV:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_SV:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_SV:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_SV:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_SV1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_SV2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      PA:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_PA:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_PA:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_PA:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_PA:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_PA:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_PA1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_PA2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+      default:
+        slidingWindowSize: ${SLIDING_WINDOW_SIZE_DEFAULT:10}
+        minimumNumberOfCalls: ${MINIMUM_NUMBER_OF_CALLS_DEFAULT:10}
+        failureRateThreshold: ${FAILURE_RATE_THRESHOLD_DEFAULT:50}
+        permittedNumberOfCallsInHalfOpenState: ${PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE_DEFAULT:5}
+        waitDurationInOpenState: ${WAIT_DURATION_IN_OPEN_STATE_DEFAULT:30000ms}
+        ignoreExceptions:
+          - ${IGNORE_EXCEPTION_DEFAULT1:com.bac.lib.datapower.v2.exception.AuthenticationException}
+          - ${IGNORE_EXCEPTION_DEFAULT2:com.bac.lib.datapower.v2.exception.TokenUnauthorizedException}
+
+secure-immutability:
+  enabled: ${IMMUTABILITY_ENABLED:false}
+  session-key-header-name: ${SESSION_KEY_HEADER_NAME:X-Custom-Session-Key}
+  signature-header-name: ${SIGNATURE_HEADER_NAME:request-signature}
+  base-api-url: ${URL_API:http://localhost:8080}
+
+secure-crypto:
+  header-version: ${SECURE_CRYPTO_HEADER_VERSION:3.0.0}
+  header-name: X-Custom-Session-Key

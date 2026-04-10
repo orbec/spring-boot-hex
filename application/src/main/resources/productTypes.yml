@@ -1,0 +1,3 @@
+product:
+  types:
+    INVESTMENTS_FUNDS: ${INVESTMENT_FUNDS:}

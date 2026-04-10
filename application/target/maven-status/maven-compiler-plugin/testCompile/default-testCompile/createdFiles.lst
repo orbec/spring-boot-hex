@@ -1,0 +1,3 @@
+com\bac\microservice\investmentfunds\config\UseCaseConfigurationTest.class
+com\bac\microservice\investmentfunds\InvestmentFundsApplicationTest.class
+com\bac\microservice\investmentfunds\config\AdapterConfigurationTest.class

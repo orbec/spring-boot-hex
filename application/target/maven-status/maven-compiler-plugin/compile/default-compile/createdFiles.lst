@@ -1,0 +1,3 @@
+com\bac\microservice\investmentfunds\InvestmentFundsApplication.class
+com\bac\microservice\investmentfunds\config\AdapterConfiguration.class
+com\bac\microservice\investmentfunds\config\UseCaseConfiguration.class

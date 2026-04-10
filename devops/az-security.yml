@@ -1,0 +1,36 @@
+trigger: none
+
+pr: none
+
+schedules:
+- cron: "45 11 * * *" # 5:45 AM UTC-6 (Costa Rica)
+  displayName: "Scheduled run at 5:45 AM Costa Rica time"
+  branches:
+    include:
+    - main
+  always: true
+
+resources:
+  repositories:
+    - repository: bancadigital-devsecops-templates
+      type: github
+      name: BAC-Credomatic/bancadigital-devsecops-templates
+      endpoint: BAC-Credomatic
+      ref: refs/tags/v0.3.141
+
+pool:
+  name: bac-ubuntu-b2s
+
+variables:
+  # VARIABLES TO ADJUST FOR EACH SERVICE
+  - name: "SERVICE_NAME"
+    value: "BancaDigital-ms-investment-funds"
+  - group: veracode_keys
+
+jobs:
+  - job: CI_Security
+    displayName: 'Build, Scan Veracode'
+    steps:
+      - template: base/ci-nightly.yml@bancadigital-devsecops-templates
+        parameters:
+          SERVICE_NAME: $(SERVICE_NAME)

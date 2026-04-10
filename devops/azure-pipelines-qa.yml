@@ -1,0 +1,46 @@
+trigger:
+  tags:
+    include:
+    - '*.*.*-qa'
+  branches:
+    exclude:
+    - '*'
+
+pr: none
+
+pool:
+  name: bac-ubuntu-b2s
+
+resources:
+  repositories:
+    - repository: bancadigital-devsecops-templates
+      type: github
+      name: BAC-Credomatic/bancadigital-devsecops-templates
+      endpoint: BAC-Credomatic
+      ref: refs/tags/v0.3.141
+
+variables:
+  # VARIABLES TO ADJUST FOR EACH SERVICE
+  - name: "SERVICE_NAME"
+    value: "investment-funds"
+  - group: bancadigital-ci-qa-new
+
+jobs:
+  - job: CI
+    displayName: 'Build, Scan and Push Docker Image'
+
+    steps:
+    - template: base/ci-qa.yml@bancadigital-devsecops-templates
+      parameters:
+        SERVICE_NAME: $(SERVICE_NAME)
+        ECR_REGISTRY: $(ECR_REGISTRY)
+
+    
+  - job: CD
+    displayName: 'Deploy to Kubernetes with Lattice'
+    dependsOn: CI
+    steps:
+      - template: base/cd-qa-lattice.yml@bancadigital-devsecops-templates
+        parameters:
+          SERVICE_NAME: $(SERVICE_NAME)
+          AWS_ROLE_ARN: $(AWS_ROLE_ARN)

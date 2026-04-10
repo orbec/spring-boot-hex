@@ -1,0 +1,47 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  name: bac-ubuntu-b2s
+
+resources:
+  repositories:
+    - repository: bancadigital-devsecops-templates
+      type: github
+      name: BAC-Credomatic/bancadigital-devsecops-templates
+      endpoint: BAC-Credomatic
+      ref: refs/tags/v0.3.141
+
+variables:
+  # VARIABLES TO ADJUST FOR EACH SERVICE
+  - name: "SERVICE_NAME"
+    value: "investment-funds"
+  - group: bancadigital-ci-dev
+  - group: checkpoint_sdn
+  - group: veracode_keys
+  - group: jfrog-api
+  - group: veracode_sca_agent
+
+jobs:
+  - job: Job1
+    displayName: 'Validate tests and code quality'
+    steps:
+      - template: base/validate.yml@bancadigital-devsecops-templates
+        parameters:
+          SERVICE_NAME: $(SERVICE_NAME)
+
+  - job: CI
+    displayName: 'Build, Scan and Push Docker Image'
+    condition: and(succeeded(), in(variables['Build.Reason'], 'IndividualCI', 'Manual'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    steps:
+      - template: base/ci.yml@bancadigital-devsecops-templates
+        parameters:
+          SERVICE_NAME: $(SERVICE_NAME)
+          ECR_REGISTRY: $(ECR_REGISTRY)

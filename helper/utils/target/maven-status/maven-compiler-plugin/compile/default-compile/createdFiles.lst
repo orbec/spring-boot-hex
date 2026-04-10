@@ -1,0 +1,4 @@
+com\bac\microservice\investmentfunds\utils\InvestmentFundLogicUtil.class
+com\bac\microservice\investmentfunds\utils\mapper\InvestmentFundsMapper.class
+com\bac\microservice\investmentfunds\utils\mapper\InvestmentFundsMapperImpl.class
+com\bac\microservice\investmentfunds\utils\ExceptionUtil.class

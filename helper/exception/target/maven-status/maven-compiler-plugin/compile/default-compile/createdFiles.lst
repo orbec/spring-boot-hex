@@ -1,0 +1,5 @@
+com\bac\microservice\investmentfunds\exception\InternalServerErrorException.class
+com\bac\microservice\investmentfunds\exception\InvestmentFundOwnerException.class
+com\bac\microservice\investmentfunds\exception\InvestmentFundOwnerException$InvestmentFundOwnerExceptionBuilder.class
+com\bac\microservice\investmentfunds\exception\util\Constants.class
+com\bac\microservice\investmentfunds\exception\InternalServerErrorException$InternalServerErrorExceptionBuilder.class

@@ -1,0 +1,36 @@
+trigger: none
+
+pr: none
+
+schedules:
+- cron: "45 13 * * *" # 7:45 AM UTC-6 (Costa Rica)
+  displayName: "Scheduled run at 7:45 AM Costa Rica time"
+  branches:
+    include:
+    - main
+  always: true
+
+resources:
+  repositories:
+    - repository: bancadigital-devsecops-templates
+      type: github
+      name: BAC-Credomatic/bancadigital-devsecops-templates
+      endpoint: BAC-Credomatic
+      ref: refs/tags/v0.3.141
+
+pool:
+  name: bac-ubuntu-b2s
+
+variables:
+  # VARIABLES TO ADJUST FOR EACH SERVICE
+  - name: "PROFILE_NAME"
+    value: "BancaDigital-ms-investment-funds"
+  - group: veracode_keys
+
+stages:
+- stage: Flaw_Importer
+  displayName: 'Importar Veracode Flaws'
+  jobs:
+    - template: templates/task-veracode_flaw_importer.yml@bancadigital-devsecops-templates
+      parameters:
+        PROFILE_NAME: $(PROFILE_NAME)

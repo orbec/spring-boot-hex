@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Include Spring Boot's defaults -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Configuration for local profile -->
+    <springProfile name="local">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="test">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- Configuration for non-local profiles -->
+    <springProfile name="!local">
+        <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>timestamp</fieldName>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>log_level</fieldName>
+                    </logLevel>
+                    <loggerName>
+                        <fieldName>logger_name</fieldName>
+                    </loggerName>
+                    <threadName>
+                        <fieldName>thread_name</fieldName>
+                    </threadName>
+                    <message>
+                        <fieldName>message</fieldName>
+                    </message>
+                    <stackTrace>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>4096</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                    <pattern>
+                        <pattern>
+                            {
+                            "trace_id": "%X{traceId:-}",
+                            "span_id": "%X{spanId:-}"
+                            }
+                        </pattern>
+                    </pattern>
+                </providers>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="jsonConsoleAppender"/>
+        </root>
+    </springProfile>
+</configuration>

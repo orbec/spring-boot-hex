@@ -1,0 +1,132 @@
+## este pipeline esta dedicado a hacer el build de las imagenes de docker que se van a versionar desde la rama main
+## con la funcinoalidad de poder desplegar en varios ecr en la msima ejecucion
+
+trigger:
+  tags:
+    include:
+    - '*.*.*'
+  branches:
+    exclude:
+    - '*'
+
+pr: none
+
+pool:
+  name: bac-ubuntu-b2s
+
+resources:
+  repositories:
+    - repository: bancadigital-devsecops-templates
+      type: github
+      name: BAC-Credomatic/bancadigital-devsecops-templates
+      endpoint: BAC-Credomatic
+      ref: refs/tags/v0.3.141
+
+variables:
+  # VARIABLES TO ADJUST FOR EACH SERVICE
+  - name: "SERVICE_NAME"
+    value: "investment-funds"
+  - group: BAC_LATAM_AWS_ACCOUNTS_INFO
+
+
+stages:
+  - stage: CI_version_to_ecr_dev
+    displayName: 'Build and push version to ecr dev'
+    jobs:
+    - job: CI_version_dev
+      steps:
+      - template: base/ci-versionamiento.yml@bancadigital-devsecops-templates
+        parameters:
+          SERVICE_NAME: $(SERVICE_NAME)
+          AWS_CREDS: $(AWS_SERVICE_ACCOUNT_DEV)
+          ACCOUNT_ID: $(ACCOUNT_ID_DEV)
+          AWS_REGION: us-east-1
+          EXTRA_TAGS: |
+            $(Build.SourceBranchName)
+            $(Build.BuildNumber)
+            latest
+
+  - stage: CI_version_qa
+    displayName: 'Carga version en qa'
+    dependsOn: CI_version_to_ecr_dev
+    condition: and(succeeded('CI_version_to_ecr_dev'),startsWith(variables['Build.SourceBranch'],'refs/tags/'))
+    jobs:
+      - deployment: Deploy
+        environment: $(APPROVAL_GATE_ECR_ENV_QA)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: base/cd-versionamiento.yml@bancadigital-devsecops-templates
+                parameters:
+                  SERVICE_NAME: $(SERVICE_NAME)
+                  AWS_CREDS_SOURCE: $(AWS_SERVICE_ACCOUNT_DEV)
+                  AWS_CREDS_TARGET: $(AWS_SERVICE_ACCOUNT_QA)
+                  ACCOUNT_ID_SOURCE: $(ACCOUNT_ID_DEV)
+                  ACCOUNT_ID_TARGET: $(ACCOUNT_ID_QA) 
+                  TAG_IMAGE_SOURCE: $(Build.SourceBranchName)
+                  TAG_IMAGE_TARGET: $(Build.BuildId)
+                  ENV_TARGET: qa
+                  AWS_REGION_SOURCE: us-east-1
+                  AWS_REGION_TARGET: us-east-1
+
+  - stage: CI_version_pre_prod
+    displayName: 'Carga version en pre-prod'
+    dependsOn: CI_version_to_ecr_dev
+    condition: and(succeeded('CI_version_to_ecr_dev'),startsWith(variables['Build.SourceBranch'],'refs/tags/'))
+    jobs:
+      - deployment: Deploy
+        environment: $(APPROVAL_GATE_ECR_ENV_PRE_PROD)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: base/cd-versionamiento.yml@bancadigital-devsecops-templates
+                parameters:
+                  SERVICE_NAME: $(SERVICE_NAME)
+                  AWS_CREDS_SOURCE: $(AWS_SERVICE_ACCOUNT_DEV)
+                  AWS_CREDS_TARGET: $(AWS_SERVICE_ACCOUNT_PRE_PROD)
+                  ACCOUNT_ID_SOURCE: $(ACCOUNT_ID_DEV)
+                  ACCOUNT_ID_TARGET: $(ACCOUNT_ID_PRE_PROD) 
+                  TAG_IMAGE_SOURCE: $(Build.SourceBranchName)
+                  TAG_IMAGE_TARGET: $(Build.BuildId)
+                  ENV_TARGET: pre-prod
+                  AWS_REGION_SOURCE: us-east-1
+                  AWS_REGION_TARGET: us-east-1
+
+  - stage: CI_version_prod
+    displayName: 'Carga version en prod'
+    dependsOn: CI_version_to_ecr_dev
+    condition: and(succeeded('CI_version_to_ecr_dev'),startsWith(variables['Build.SourceBranch'],'refs/tags/'))
+    jobs:
+      - deployment: Deploy
+        environment: $(APPROVAL_GATE_ECR_ENV_PROD)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: base/cd-versionamiento.yml@bancadigital-devsecops-templates
+                parameters:
+                  SERVICE_NAME: $(SERVICE_NAME)
+                  AWS_CREDS_SOURCE: $(AWS_SERVICE_ACCOUNT_DEV)
+                  AWS_CREDS_TARGET: $(AWS_SERVICE_ACCOUNT_PROD)
+                  ACCOUNT_ID_SOURCE: $(ACCOUNT_ID_DEV)
+                  ACCOUNT_ID_TARGET: $(ACCOUNT_ID_PROD) 
+                  TAG_IMAGE_SOURCE: $(Build.SourceBranchName)
+                  TAG_IMAGE_TARGET: $(Build.BuildId)
+                  ENV_TARGET: prod
+                  AWS_REGION_SOURCE: us-east-1
+                  AWS_REGION_TARGET: us-east-1
+            
+              - template: base/cd-versionamiento.yml@bancadigital-devsecops-templates
+                parameters:
+                  SERVICE_NAME: $(SERVICE_NAME)
+                  AWS_CREDS_SOURCE: $(AWS_SERVICE_ACCOUNT_DEV)
+                  AWS_CREDS_TARGET: $(AWS_SERVICE_ACCOUNT_PROD)
+                  ACCOUNT_ID_SOURCE: $(ACCOUNT_ID_DEV)
+                  ACCOUNT_ID_TARGET: $(ACCOUNT_ID_PROD) 
+                  TAG_IMAGE_SOURCE: $(Build.SourceBranchName)
+                  TAG_IMAGE_TARGET: $(Build.BuildId)
+                  ENV_TARGET: prod-us-east-2
+                  AWS_REGION_SOURCE: us-east-1
+                  AWS_REGION_TARGET: us-east-2
