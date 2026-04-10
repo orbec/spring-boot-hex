@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.bac.microservice</groupId>
+        <artifactId>bancadigital-ms-investment-funds</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+    <artifactId>bancadigital-ms-investment-funds-model</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>bancadigital-ms-investment-funds-model</name>
+    <description>Modulo model del proyecto</description>
+    <dependencies>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bac.microservice</groupId>
+            <artifactId>bancadigital-lib-openfga</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bac.microservice</groupId>
+            <artifactId>bancadigital-lib-secure-crypto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bac.microservice</groupId>
+            <artifactId>bancadigital-lib-oauth</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bac.microservice</groupId>
+            <artifactId>bancadigital-lib-alias-manager</artifactId>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
